@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">ScanNGet</string>
+    <string name="something_went_wrong">Something went wrong</string>
+    <string name="invalid_barcode">Invalid barcode</string>
+    <string name="no_data">No data found, click scan button to add</string>
+    <string name="add">Add</string>
+    <string name="action_export">Export</string>
+</resources>
