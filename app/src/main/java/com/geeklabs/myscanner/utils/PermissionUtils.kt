@@ -1,4 +1,4 @@
-package com.tfl.qinspect.utils
+package com.geeklabs.myscanner.utils
 
 import android.Manifest
 import android.app.Activity

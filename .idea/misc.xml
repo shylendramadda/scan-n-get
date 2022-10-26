@@ -3,6 +3,7 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="app/src/main/res/drawable/ic_qr_code_scanner_black_24dp.xml" value="0.164" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.26296296296296295" />
         <entry key="app/src/main/res/layout/activity_splash.xml" value="0.2598958333333333" />
         <entry key="app/src/main/res/layout/item_user.xml" value="0.27395833333333336" />

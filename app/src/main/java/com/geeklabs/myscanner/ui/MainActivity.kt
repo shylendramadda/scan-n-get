@@ -2,14 +2,15 @@ package com.geeklabs.myscanner.ui
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
-import android.os.Environment
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import au.com.bytecode.opencsv.CSVWriter
 import com.geeklabs.myscanner.App
 import com.geeklabs.myscanner.R
 import com.geeklabs.myscanner.extensions.applySchedulers
@@ -19,14 +20,14 @@ import com.geeklabs.myscanner.models.User
 import com.geeklabs.myscanner.usecase.UserUseCase
 import com.geeklabs.myscanner.utils.AlertButtonClickListener
 import com.geeklabs.myscanner.utils.AppUtils
+import com.geeklabs.myscanner.utils.Constants
+import com.geeklabs.myscanner.utils.PermissionUtils
 import com.google.zxing.integration.android.IntentIntegrator
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
+import java.io.FileWriter
 import java.io.IOException
-import java.nio.channels.FileChannel
 import javax.inject.Inject
 
 
@@ -49,6 +50,18 @@ class MainActivity : AppCompatActivity(), AlertButtonClickListener {
             launchBarCodeScanner()
         }
         loadUsers()
+        askPermissions()
+    }
+
+    private fun askPermissions() {
+        if (Build.VERSION.SDK_INT >= 23) {
+            try {
+                val permissionUtils = PermissionUtils(this)
+                permissionUtils.requestAllMandatoryPermissions()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     @Suppress("DEPRECATION")
@@ -144,12 +157,34 @@ class MainActivity : AppCompatActivity(), AlertButtonClickListener {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.action_export -> copyDb()
+            R.id.action_export -> convertToCsv()
         }
         return super.onOptionsItemSelected(item)
     }
 
-    private fun copyDb() {
+    private fun convertToCsv() {
+        try {
+            val rootPath = externalCacheDir
+            val root = File(rootPath?.absolutePath + "/temp/")
+            val destFile = File(root, Constants.csvName)
+            if (!destFile.exists()) {
+                destFile.parentFile?.mkdirs()
+                destFile.createNewFile()
+            }
+            val csvWrite = CSVWriter(FileWriter(destFile))
+            userAdapter.mList.forEach {
+                val arrStr =
+                    arrayOf(it.id.toString(), it.rawData, AppUtils.dateFormat1(it.createdTime))
+                csvWrite.writeNext(*arrStr)
+            }
+            csvWrite.close()
+            startFileShareIntent(destFile.absolutePath)
+        } catch (e: IOException) {
+            Log.e("MainActivity", e.message, e)
+        }
+    }
+
+    /*private fun copyDb() {
         val dbSource = getDatabasePath("ScanNGet.db")
         val rootPath = externalCacheDir
         val root = File(rootPath?.absolutePath + "/temp/")
@@ -218,7 +253,7 @@ class MainActivity : AppCompatActivity(), AlertButtonClickListener {
             }
         }
         startFileShareIntent(destFile.absolutePath)
-    }
+    }*/
 
     private fun startFileShareIntent(filePath: String) { // pass the file path where the actual file is located.
         val shareIntent = Intent(Intent.ACTION_SEND).apply {

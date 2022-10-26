@@ -46,13 +46,12 @@ class UserAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             content = content.removeSuffix(", ")
             tvData.text = content
             tvTime.text = AppUtils.dateFormat1(user.createdTime)
-            itemView.setOnLongClickListener {
+            ivCopy.setOnClickListener {
                 val userInfo = Gson().toJson(user, User::class.java)
                 val clipboard = context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-                val clip = ClipData.newPlainText("SSInfo", userInfo)
+                val clip = ClipData.newPlainText("Info", userInfo)
                 clipboard.setPrimaryClip(clip)
-                Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show()
-                true
+                Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
             }
         }
     }
