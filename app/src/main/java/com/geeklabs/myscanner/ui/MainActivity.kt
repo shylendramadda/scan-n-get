@@ -23,6 +23,8 @@ import com.geeklabs.myscanner.utils.AppUtils
 import com.geeklabs.myscanner.utils.Constants
 import com.geeklabs.myscanner.utils.PermissionUtils
 import com.google.zxing.integration.android.IntentIntegrator
+import com.journeyapps.barcodescanner.CaptureActivity
+import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
@@ -86,7 +88,8 @@ class MainActivity : AppCompatActivity(), AlertButtonClickListener {
             val intentIntegrator = IntentIntegrator(this)
             intentIntegrator.setPrompt("Scan a barcode or QR Code")
             intentIntegrator.setOrientationLocked(false)
-            intentIntegrator.setBeepEnabled(false)
+            intentIntegrator.setBeepEnabled(true)
+            intentIntegrator.captureActivity = CaptureActivity::class.java
             intentIntegrator.initiateScan()
         } catch (e: Exception) {
             toast(getString(R.string.something_went_wrong))
@@ -104,7 +107,7 @@ class MainActivity : AppCompatActivity(), AlertButtonClickListener {
             } else {
                 this.contents = contents
                 println("User:$contents")
-                showAlert("Registration Info:", contents)
+                showAlert("Info:", contents)
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data)
@@ -163,6 +166,10 @@ class MainActivity : AppCompatActivity(), AlertButtonClickListener {
     }
 
     private fun convertToCsv() {
+        if (userAdapter.mList.isEmpty()) {
+            toast("Please scan and add at least one to export")
+            return
+        }
         try {
             val rootPath = externalCacheDir
             val root = File(rootPath?.absolutePath + "/temp/")
@@ -172,13 +179,26 @@ class MainActivity : AppCompatActivity(), AlertButtonClickListener {
                 destFile.createNewFile()
             }
             val csvWrite = CSVWriter(FileWriter(destFile))
-            userAdapter.mList.forEach {
-                val arrStr =
-                    arrayOf(it.id.toString(), it.rawData, AppUtils.dateFormat1(it.createdTime))
-                csvWrite.writeNext(*arrStr)
-            }
-            csvWrite.close()
-            startFileShareIntent(destFile.absolutePath)
+            disposables.add(Single.just(Unit)
+                .applySchedulers()
+                .doOnSubscribe { progressBar.visible = true }
+                .doFinally { progressBar.visible = false }
+                .subscribe({
+                    userAdapter.mList.forEach {
+                        val arrStr =
+                            arrayOf(
+                                it.id.toString(),
+                                it.rawData,
+                                AppUtils.dateFormat1(it.createdTime)
+                            )
+                        csvWrite.writeNext(*arrStr)
+                    }
+                    csvWrite.close()
+                    startFileShareIntent(destFile.absolutePath)
+                }, {
+                    toast(getString(R.string.something_went_wrong))
+                })
+            )
         } catch (e: IOException) {
             Log.e("MainActivity", e.message, e)
         }

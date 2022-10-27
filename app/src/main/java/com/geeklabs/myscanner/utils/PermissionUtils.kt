@@ -18,8 +18,8 @@ class PermissionUtils(val activity: Activity) {
 
     fun requestAllMandatoryPermissions() {
         permissionsList = ArrayList<String>()
-        addPermissionIfNotGranted(Manifest.permission.READ_EXTERNAL_STORAGE)
-        addPermissionIfNotGranted(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//        addPermissionIfNotGranted(Manifest.permission.READ_EXTERNAL_STORAGE)
+//        addPermissionIfNotGranted(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         addPermissionIfNotGranted(Manifest.permission.CAMERA)
         askRequiredPermissions(REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS)
 //        addPermissionIfNotGranted(Manifest.permission.CALL_PHONE)
